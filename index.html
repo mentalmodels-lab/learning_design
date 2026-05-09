@@ -354,12 +354,18 @@ select option{background:#1c1c1c}
       <div class="dot-seg" style="background:var(--bd)" id="wd2"></div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:14px">
-      ${[1,2,3].map(n=>`<button onclick="setWall(${n})" id="wb${n}"
-        style="flex:1;padding:10px 6px;border-radius:10px;border:0.5px solid var(--bd);
-        background:var(--bg3);color:var(--t2);font-size:13px;font-weight:600;
-        font-family:inherit;cursor:pointer;transition:.15s">
-        ${n}번째
-      </button>`).join('')}
+      <button id="wb1" onclick="setWall(1)"
+        style="flex:1;padding:10px 6px;border-radius:10px;border:0.5px solid var(--bd);background:var(--bg3);color:var(--t2);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:.15s">
+        1번째
+      </button>
+      <button id="wb2" onclick="setWall(2)"
+        style="flex:1;padding:10px 6px;border-radius:10px;border:0.5px solid var(--bd);background:var(--bg3);color:var(--t2);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:.15s">
+        2번째
+      </button>
+      <button id="wb3" onclick="setWall(3)"
+        style="flex:1;padding:10px 6px;border-radius:10px;border:0.5px solid var(--bd);background:var(--bg3);color:var(--t2);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:.15s">
+        3번째
+      </button>
     </div>
     <div class="wall-badge" id="wall-badge" style="display:none">
       <span>📌</span><span id="wall-badge-txt"></span>
@@ -465,7 +471,7 @@ select option{background:#1c1c1c}
 
 <script>
 // ★ Google Apps Script 웹앱 URL 교체 ★
-const SHEET_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQoPP74E72muCD9SSqsqEBtM5z8EimU5TTJ2SszwcWSf6x5l2jtEWW_voXG9DiSR0SwQhO8Kc-mTypM0ruE3lTbWinAjCxVLsGPhB5rKtpYfzythmsEPcUdA5UTkSaSo9brS0EmrrjI-EwnPDT_5ojdKBK0Sc7V4Q_3OohQHqs9q-8apalrcE3yO2w-Y7YBZ2viKPtFtqiSrEDc63MOnLeMY2T9W5MzYc9hxoniYRJDA60QmUaQ7G3UZOflbc1S3x7FV_Lb2PLP5do5xwzFlBH4GSwClA&lib=ME-RZZbC3y2tu55kJhMFJgY6Cun0o2afJ';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxapM7wiUOCw2sVR4bdOeNxOrsG3ZKM5MDMmJL1Bhh_ky4M8Mzl7cywHJ751PiTgVFyKg/exec';
 
 // ── DATA ──────────────────────────────────────────────────────
 const D = {
@@ -479,30 +485,36 @@ const D = {
 
 // ── BLOOM DATA ─────────────────────────────────────────────────
 const BL = [
-  {id:'remember', lv:'Lv.1', name:'기억하기',
+  {id:'remember', lv:'Lv.1', name:'외워서 말할 수 있다',
+   tag:'시험지에 그대로 쓸 수 있는 수준',
    c:'var(--b1)', bg:'#4A4ABF15',
-   verbs:'나열하다 · 정의하다 · 말하다 · 확인하다',
-   ex:'작업기억의 3가지 특징을 교과서 없이 나열할 수 있다'},
-  {id:'understand', lv:'Lv.2', name:'이해하기',
+   verbs:'나열하다 · 쓰다 · 말하다 · 외우다',
+   ex:'작업기억의 특징 3가지를 교과서 없이 쓸 수 있다'},
+  {id:'understand', lv:'Lv.2', name:'내 말로 설명할 수 있다',
+   tag:'동생한테 가르쳐줄 수 있는 수준',
    c:'var(--b2)', bg:'#3D6FA815',
-   verbs:'설명하다 · 비교하다 · 요약하다 · 분류하다',
-   ex:'단순 반복과 의도적 연습의 차이를 내 말로 설명할 수 있다'},
-  {id:'apply', lv:'Lv.3', name:'적용하기',
+   verbs:'설명하다 · 비교하다 · 예를 들다 · 요약하다',
+   ex:'단순 반복과 의도적 연습의 차이를 친구한테 설명할 수 있다'},
+  {id:'apply', lv:'Lv.3', name:'처음 보는 문제에 써먹을 수 있다',
+   tag:'배운 것을 낯선 상황에 쓰는 수준',
    c:'var(--b3)', bg:'#2A947015',
-   verbs:'사용하다 · 풀다 · 계산하다 · 실행하다',
-   ex:'왜? 사다리를 내 교과 개념에 직접 적용할 수 있다'},
-  {id:'analyze', lv:'Lv.4', name:'분석하기',
+   verbs:'풀다 · 사용하다 · 계산하다 · 적용하다',
+   ex:'처음 보는 그래프를 보고 이차함수 식을 구할 수 있다'},
+  {id:'analyze', lv:'Lv.4', name:'쪼개서 연결고리를 볼 수 있다',
+   tag:'왜 그런지 구조가 보이는 수준',
    c:'var(--b4)', bg:'#B8720F15',
-   verbs:'구분하다 · 분해하다 · 관계를 찾다 · 쪼개다',
-   ex:'내 공부법에서 작업기억 과부하를 일으키는 요인을 구분할 수 있다'},
-  {id:'evaluate', lv:'Lv.5', name:'평가하기',
+   verbs:'구분하다 · 찾다 · 나누다 · 연결하다',
+   ex:'임진왜란 원인을 정치·군사·외교로 나눠서 설명할 수 있다'},
+  {id:'evaluate', lv:'Lv.5', name:'기준을 들어 판단할 수 있다',
+   tag:'좋다/나쁘다 이유를 댈 수 있는 수준',
    c:'var(--b5)', bg:'#B84A2A15',
-   verbs:'판단하다 · 비판하다 · 선택하다 · 검토하다',
-   ex:'이순신과 의병 중 누가 더 결정적이었는지 근거를 들어 주장할 수 있다'},
-  {id:'create', lv:'Lv.6', name:'창조하기',
+   verbs:'비교하다 · 판단하다 · 주장하다 · 고르다',
+   ex:'두 풀이법 중 어느 게 더 효율적인지 이유를 들어 말할 수 있다'},
+  {id:'create', lv:'Lv.6', name:'없던 것을 새로 만들 수 있다',
+   tag:'배운 것을 조합해 새것을 만드는 수준',
    c:'var(--b6)', bg:'#8B1A3A15',
    verbs:'설계하다 · 만들다 · 제안하다 · 구성하다',
-   ex:'뇌과학 원리에 근거한 나만의 학습 루틴을 설계할 수 있다'},
+   ex:'오늘 배운 뇌과학 원리로 나만의 학습 루틴을 설계할 수 있다'},
 ];
 
 // ── STYLE QUESTIONS ────────────────────────────────────────────
@@ -624,6 +636,7 @@ function renderBloom(){
           <span class="bloom-name" style="${bloomSel===i?`color:${b.c}`:''}">${b.name}</span>
         </div>
         <div class="bloom-verbs">${b.verbs}</div>
+        <div class="bloom-tag" style="font-size:11px;color:${bloomSel===i?b.c:'var(--t3)'};margin-top:3px">${b.tag}</div>
         ${bloomSel===i?`<div class="bloom-ex">예: ${b.ex}</div>`:''}
       </div>`).join('')}
   </div>
