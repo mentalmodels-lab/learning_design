@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!--
+══════════════════════════════════════════════════════════════
+  정말, 공부하고 있는 거 맞아? — 나의 학습 계획 앱 v2
+  박영민 | 한국과학영재학교 | 2026 점프업 수학·과학스쿨
+
+  ── GitHub Pages 배포 ────────────────────────────────────────
+  1. GitHub 저장소 생성 (예: jump-up-2026)
+  2. 이 파일을 index.html 로 저장 후 push
+  3. Settings → Pages → Branch: main / root → Save
+  4. https://[username].github.io/jump-up-2026 접속
+  5. QR 생성: qr.io 또는 qrcode-monkey.com 에서 URL → QR 이미지
+
+  ── Google Sheets 연동 ───────────────────────────────────────
+  1. sheets.google.com 에서 새 시트 생성
+  2. 확장 프로그램 → Apps Script → 새 스크립트에 붙여넣기:
+
+  ┌─────────────────────────────────────────────────────────┐
+  │ function doPost(e) {                                    │
+  │   const s = SpreadsheetApp                              │
+  │     .getActiveSpreadsheet().getActiveSheet();           │
+  │   const d = JSON.parse(e.postData.contents);           │
+  │   s.appendRow([                                         │
+  │     d.ts, d.name, d.school, d.grade,                   │
+  │     d.sq1, d.sq2, d.sq3,                               │
+  │     d.r1, d.r2, d.r3,                                  │
+  │     d.why_topic, d.why_wall, d.why_level,              │
+  │     d.bloom_lv, d.bloom_goal,                           │
+  │     d.change1, d.confirm_how                            │
+  │   ]);                                                   │
+  │   return ContentService                                 │
+  │     .createTextOutput('ok');                           │
+  │ }                                                       │
+  └─────────────────────────────────────────────────────────┘
+
+  3. 상단 배포 → 새 배포 → 유형: 웹 앱
+     - 실행 계정: 나
+     - 액세스 권한: 모든 사용자
+     → 배포 → 웹 앱 URL 복사
+  4. 아래 SHEET_URL 변수에 붙여넣기 (따옴표 안에)
+══════════════════════════════════════════════════════════════
+-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<title>나의 학습 계획 | 점프업 2026</title>
+<style>
+:root{
+  --bg:#0a0a0a;--bg2:#141414;--bg3:#1c1c1c;--bg4:#242424;
+  --t1:#f2f2f0;--t2:#999;--t3:#555;
+  --bd:#252525;--bd2:#303030;
+  --bl:#4A90D9;--bl2:#7BB3E8;--bl3:#4A90D915;
+  --gn:#5C9B2E;--gn2:#8EC45A;--gn3:#5C9B2E15;
+  --am:#B8720F;--am2:#E09A3A;--am3:#B8720F15;
+  --rd:#C44B4B;--rd2:#E07878;
+  --b1:#4A4ABF;--b2:#3D6FA8;--b3:#2A9470;
+  --b4:#B8720F;--b5:#B84A2A;--b6:#8B1A3A;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t1);min-height:100vh;
+  font-family:-apple-system,'SF Pro Text','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  font-size:15px;line-height:1.5}
+
+/* ── PROGRESS ── */
+#pb{position:fixed;top:0;left:0;right:0;height:2px;background:var(--bd);z-index:100}
+#pf{height:100%;width:0%;background:var(--bl);transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;padding-bottom:80px}
+.screen.on{display:block}
+
+/* ── WELCOME ── */
+.wl{padding:48px 24px 40px;min-height:100vh;display:flex;flex-direction:column}
+.wl-kv{flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:24px}
+.wl-tag{font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--t3);margin-bottom:20px}
+.wl-title{font-size:40px;font-weight:800;line-height:1.1;margin-bottom:16px;
+  letter-spacing:-1px}
+.wl-title em{font-style:normal;color:var(--bl2)}
+.wl-sub{font-size:16px;color:var(--t2);line-height:1.7;margin-bottom:40px}
+.wl-items{display:flex;flex-direction:column;gap:10px;margin-bottom:40px}
+.wl-item{display:flex;gap:14px;align-items:center;background:var(--bg2);
+  border:0.5px solid var(--bd);border-radius:12px;padding:14px 16px}
+.wl-item-num{width:24px;height:24px;border-radius:50%;background:var(--bg3);
+  border:0.5px solid var(--bd2);font-size:11px;font-weight:700;color:var(--t3);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wl-item-txt{font-size:13px;color:var(--t2);line-height:1.45}
+.wl-item-txt strong{color:var(--t1);font-weight:500}
+.wl-time{font-size:12px;color:var(--t3);text-align:center;margin-bottom:16px}
+
+/* ── STEP HEADER ── */
+.sh{padding:28px 20px 0}
+.sh-ey{font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--t3);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.sh-ey::after{content:'';flex:1;height:1px;background:var(--bd)}
+.sh-title{font-size:24px;font-weight:700;line-height:1.25;margin-bottom:8px;letter-spacing:-.5px}
+.sh-sub{font-size:13px;color:var(--t2);line-height:1.65}
+.step-body{padding:20px 20px 0}
+
+/* ── FOOTER ── */
+.ft{position:fixed;bottom:0;left:0;right:0;padding:12px 20px 24px;
+  background:linear-gradient(to top,var(--bg) 55%,transparent)}
+.ft-row{display:flex;gap:10px}
+.btn{border-radius:14px;font-size:14px;font-weight:600;border:none;
+  cursor:pointer;font-family:inherit;transition:all .15s;padding:15px 20px}
+.btn:active{transform:scale(.97)}
+.btn-back{background:var(--bg3);color:var(--t2);border:0.5px solid var(--bd2);
+  flex:0 0 54px}
+.btn-next{background:var(--bl);color:#fff;flex:1}
+.btn-next:disabled{background:var(--bg3);color:var(--t3);cursor:not-allowed}
+.btn-submit{background:var(--gn);color:#fff;flex:1}
+
+/* ── FORM ELEMENTS ── */
+.field{margin-bottom:16px}
+.fl{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--t3);margin-bottom:8px;display:block}
+input[type=text],textarea,select{
+  width:100%;background:var(--bg2);border:0.5px solid var(--bd2);
+  border-radius:12px;padding:14px 16px;font-size:15px;
+  color:var(--t1);font-family:inherit;line-height:1.5;transition:.15s;
+  -webkit-appearance:none}
+input[type=text]:focus,textarea:focus,select:focus{
+  outline:none;border-color:var(--bl);background:var(--bg3)}
+textarea{resize:none}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23555' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 16px center}
+select option{background:#1c1c1c}
+
+/* ── CHIPS ── */
+.chips{display:flex;flex-direction:column;gap:8px}
+.chip{width:100%;background:var(--bg2);border:0.5px solid var(--bd2);
+  border-radius:12px;padding:14px 16px;cursor:pointer;text-align:left;
+  font-family:inherit;transition:.15s;display:flex;align-items:center;gap:14px}
+.chip:active{transform:scale(.98)}
+.chip.on{border-color:var(--bl);background:var(--bl3)}
+.chip-rb{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--bd2);
+  flex-shrink:0;transition:.15s;display:flex;align-items:center;justify-content:center}
+.chip.on .chip-rb{border-color:var(--bl);background:var(--bl)}
+.chip-rb-dot{width:8px;height:8px;border-radius:50%;background:#fff;display:none}
+.chip.on .chip-rb-dot{display:block}
+.chip-body{}
+.chip-main{font-size:14px;font-weight:500;color:var(--t1);margin-bottom:1px}
+.chip-sub{font-size:12px;color:var(--t3)}
+.chip.on .chip-main{color:var(--bl2)}
+.chip.on .chip-sub{color:var(--bl)}
+
+/* ── RECALL ── */
+.recall-card{background:var(--bg2);border:0.5px solid var(--bd);
+  border-radius:14px;padding:16px;margin-bottom:12px}
+.recall-q{font-size:13px;color:var(--t2);margin-bottom:12px;line-height:1.6}
+.recall-q strong{color:var(--t1);font-weight:500}
+.recall-line{width:100%;background:transparent;border:none;
+  border-bottom:1px solid var(--bd2);padding:8px 0;font-size:15px;
+  color:var(--t1);font-family:inherit;line-height:1.5}
+.recall-line:focus{outline:none;border-bottom-color:var(--bl)}
+
+/* ── WHY SECTION ── */
+.why-box{background:var(--bg2);border:0.5px solid var(--bd);
+  border-radius:14px;padding:16px;margin-bottom:14px}
+.why-label{font-size:11px;font-weight:600;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--t3);margin-bottom:10px}
+.why-progress{display:flex;gap:4px;margin-bottom:16px}
+.why-seg{flex:1;height:3px;border-radius:2px;background:var(--bd)}
+.why-seg.done{background:var(--am)}
+.why-seg.stuck{background:var(--rd)}
+.wall-badge{display:inline-flex;align-items:center;gap:6px;
+  background:var(--am3);border:0.5px solid var(--am);
+  border-radius:20px;padding:5px 12px;font-size:12px;color:var(--am2);
+  font-weight:500;margin-bottom:10px}
+
+/* ── BLOOM ── */
+.bloom-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.bloom-item{background:var(--bg2);border:0.5px solid var(--bd);
+  border-radius:12px;padding:14px 16px;cursor:pointer;transition:.15s}
+.bloom-item:active{transform:scale(.98)}
+.bloom-item.on{border-width:1px}
+.bloom-top{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.bloom-badge{font-size:10px;font-weight:700;letter-spacing:.5px;
+  padding:3px 9px;border-radius:10px;text-transform:uppercase}
+.bloom-name{font-size:14px;font-weight:600}
+.bloom-verbs{font-size:11px;color:var(--t3);line-height:1.5}
+.bloom-item.on .bloom-verbs{color:var(--t2)}
+.bloom-ex{font-size:11px;color:var(--t3);margin-top:6px;line-height:1.5;
+  padding-top:6px;border-top:0.5px solid var(--bd)}
+.goal-area{background:var(--bg2);border:0.5px solid var(--bd);
+  border-radius:14px;padding:16px;margin-bottom:14px}
+.goal-prefix{font-size:12px;color:var(--t3);margin-bottom:8px}
+.goal-lv-badge{display:inline-block;font-size:11px;font-weight:700;
+  padding:4px 10px;border-radius:10px;margin-bottom:12px}
+
+/* ── INFO / HINT BOXES ── */
+.hint{background:var(--am3);border-left:2px solid var(--am);
+  border-radius:0 10px 10px 0;padding:12px 16px;
+  font-size:13px;color:var(--am2);line-height:1.65;margin-bottom:16px}
+.dots-row{display:flex;gap:5px;margin-bottom:20px}
+.dot-seg{flex:1;height:3px;border-radius:2px;transition:.3s}
+
+/* ── CONFIRM ── */
+.confirm-section{margin-bottom:20px}
+.cs-head{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--t3);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.cs-head::after{content:'';flex:1;height:1px;background:var(--bd)}
+.cs-row{display:flex;justify-content:space-between;align-items:flex-start;
+  padding:10px 0;border-bottom:0.5px solid var(--bd);gap:16px}
+.cs-row:last-child{border-bottom:none;padding-bottom:0}
+.cs-k{font-size:12px;color:var(--t3);width:68px;flex-shrink:0;line-height:1.4}
+.cs-v{font-size:13px;color:var(--t1);text-align:right;line-height:1.5;flex:1}
+.goal-card{border-radius:12px;padding:14px 16px;margin-top:10px}
+
+/* ── SUCCESS ── */
+.success-wrap{padding:40px 20px 60px;text-align:center}
+.success-icon{font-size:56px;margin-bottom:20px}
+.success-title{font-size:26px;font-weight:700;margin-bottom:10px;letter-spacing:-.5px}
+.success-sub{font-size:14px;color:var(--t2);line-height:1.8;margin-bottom:28px}
+.save-hint{background:var(--gn3);border:0.5px solid var(--gn);
+  border-radius:14px;padding:16px;font-size:13px;color:var(--gn2);
+  line-height:1.65;margin-bottom:20px;text-align:left}
+.result-list{display:flex;flex-direction:column;gap:10px;text-align:left;margin-bottom:28px}
+.rl-card{background:var(--bg2);border:0.5px solid var(--bd);
+  border-radius:12px;padding:14px 16px}
+.rl-label{font-size:10px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.rl-val{font-size:14px;color:var(--t1);line-height:1.55}
+.closing-quote{padding:20px 0 40px}
+.cq-en{font-size:16px;font-weight:700;color:var(--t1);margin-bottom:8px;
+  font-style:italic;letter-spacing:-.3px}
+.cq-ko{font-size:13px;color:var(--t3);margin-bottom:20px}
+.cq-credit{font-size:12px;color:var(--t3);line-height:1.6}
+.cq-credit strong{color:var(--t2);font-weight:500}
+.divider{height:1px;background:var(--bd);margin:24px 0}
+</style>
+</head>
+<body>
+
+<div id="pb"><div id="pf"></div></div>
+
+<!-- ══ SCREEN 0: WELCOME ══ -->
+<div class="screen on" id="s0">
+<div class="wl">
+  <div class="wl-kv">
+    <div class="wl-tag">점프업 수학·과학스쿨 · 2026</div>
+    <div class="wl-title">강의가<br>끝났나요?<br><em>이제 시작</em>입니다.</div>
+    <div class="wl-sub">들은 것은 잊힙니다.<br>꺼내고 연결하고 계획해야 남습니다.</div>
+    <div class="wl-items">
+      <div class="wl-item"><div class="wl-item-num">1</div>
+        <div class="wl-item-txt"><strong>오늘 배운 것</strong>을 메모 없이 꺼내봅니다</div></div>
+      <div class="wl-item"><div class="wl-item-num">2</div>
+        <div class="wl-item-txt"><strong>왜? 사다리</strong>에서 막힌 지점을 기록합니다</div></div>
+      <div class="wl-item"><div class="wl-item-num">3</div>
+        <div class="wl-item-txt"><strong>블룸의 단계</strong>로 구체적 목표를 세웁니다</div></div>
+      <div class="wl-item"><div class="wl-item-num">4</div>
+        <div class="wl-item-txt"><strong>나의 루틴 카드</strong>를 완성합니다</div></div>
+    </div>
+  </div>
+  <div class="wl-time">⏱ 약 8~10분 · 강연자에게 전달됩니다</div>
+  <button class="btn btn-next" style="width:100%;padding:16px;font-size:16px" onclick="go(1)">
+    시작하기 →
+  </button>
+</div>
+</div>
+
+<!-- ══ SCREEN 1: 기본 정보 ══ -->
+<div class="screen" id="s1">
+<div class="sh">
+  <div class="sh-ey">Step 1 / 5</div>
+  <div class="sh-title">나는 누구인가요?</div>
+  <div class="sh-sub">강연자에게만 전달됩니다.</div>
+</div>
+<div class="step-body">
+  <div class="field"><label class="fl">이름</label>
+    <input type="text" id="i-name" placeholder="홍길동"
+      oninput="D.name=this.value;ck1()"></div>
+  <div class="field"><label class="fl">학교</label>
+    <input type="text" id="i-school" placeholder="○○고등학교"
+      oninput="D.school=this.value;ck1()"></div>
+  <div class="field"><label class="fl">학년</label>
+    <select id="i-grade" onchange="D.grade=this.value;ck1()">
+      <option value="">선택하세요</option>
+      <option value="고1">고등학교 1학년</option>
+      <option value="고2">고등학교 2학년</option>
+      <option value="고3">고등학교 3학년</option>
+      <option value="중3">중학교 3학년</option>
+      <option value="기타">기타</option>
+    </select></div>
+</div>
+<div class="ft"><div class="ft-row">
+  <button class="btn btn-back" onclick="go(0)">←</button>
+  <button class="btn btn-next" id="b1" onclick="go(2)" disabled>다음 →</button>
+</div></div>
+</div>
+
+<!-- ══ SCREEN 2: 공부 스타일 ══ -->
+<div class="screen" id="s2">
+<!-- 내부에 sub-step 3개 -->
+</div>
+
+<!-- ══ SCREEN 3: 오늘 강의 인출 ══ -->
+<div class="screen" id="s3">
+<div class="sh">
+  <div class="sh-ey">Step 3 / 5</div>
+  <div class="sh-title">오늘 배운 것,<br>꺼내보세요</div>
+  <div class="sh-sub">메모 없이. 기억나는 것만. 말할 수 있으면 기억한 것입니다.</div>
+</div>
+<div class="step-body">
+  <div class="hint">
+    💡 막히는 부분이 아직 처리 중인 부분입니다. 틀려도 괜찮아요.
+  </div>
+  <div class="recall-card">
+    <div class="recall-q">① <strong>작업기억</strong>이란 무엇인가요?<br>
+      <span style="font-size:11px;color:var(--t3)">조리대·헤드랜턴·팬트리 중 어느 것인지, 왜 그런지</span></div>
+    <input class="recall-line" type="text" placeholder="내 말로..."
+      value="" id="r1" oninput="D.r1=this.value">
+  </div>
+  <div class="recall-card">
+    <div class="recall-q">② <strong>시간 ≠ 향상</strong>. 이게 무슨 뜻인가요?<br>
+      <span style="font-size:11px;color:var(--t3)">의사 연구 사례와 연결해서</span></div>
+    <input class="recall-line" type="text" placeholder="내 말로..."
+      id="r2" oninput="D.r2=this.value">
+  </div>
+  <div class="recall-card">
+    <div class="recall-q">③ 오늘 강의에서 <strong>가장 기억에 남는 것</strong> 한 가지</div>
+    <input class="recall-line" type="text" placeholder="자유롭게..."
+      id="r3" oninput="D.r3=this.value">
+  </div>
+</div>
+<div class="ft"><div class="ft-row">
+  <button class="btn btn-back" onclick="go(2)">←</button>
+  <button class="btn btn-next" onclick="go(4)">다음 →</button>
+</div></div>
+</div>
+
+<!-- ══ SCREEN 4: 왜? 사다리 ══ -->
+<div class="screen" id="s4">
+<div class="sh">
+  <div class="sh-ey">Step 4 / 5</div>
+  <div class="sh-title">왜를 묻다<br>막힌 곳을 기록하세요</div>
+  <div class="sh-sub">막힌 곳이 공부의 시작입니다. 막혔다, 됐다.</div>
+</div>
+<div class="step-body">
+  <div class="why-box">
+    <div class="why-label">짝 활동에서 다룬 주제</div>
+    <textarea rows="2" placeholder="예: 식물은 광합성을 한다 / 나는 핸드폰을 계속 보게 된다..."
+      oninput="D.why_topic=this.value" id="wt"
+      style="margin-bottom:0"></textarea>
+  </div>
+  <div class="why-box">
+    <div class="why-label">막힌 질문 — 몇 번째 '왜?'에서 막혔나요?</div>
+    <div class="dots-row" id="why-dots">
+      <div class="dot-seg" style="background:var(--am)" id="wd0"></div>
+      <div class="dot-seg" style="background:var(--bd)" id="wd1"></div>
+      <div class="dot-seg" style="background:var(--bd)" id="wd2"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      ${[1,2,3].map(n=>`<button onclick="setWall(${n})" id="wb${n}"
+        style="flex:1;padding:10px 6px;border-radius:10px;border:0.5px solid var(--bd);
+        background:var(--bg3);color:var(--t2);font-size:13px;font-weight:600;
+        font-family:inherit;cursor:pointer;transition:.15s">
+        ${n}번째
+      </button>`).join('')}
+    </div>
+    <div class="wall-badge" id="wall-badge" style="display:none">
+      <span>📌</span><span id="wall-badge-txt"></span>
+    </div>
+    <textarea rows="2" placeholder="막혔을 때 마지막 질문을 적어보세요. 예: 왜 스트레스를 받으면 입맛이 없어지나?"
+      oninput="D.why_wall=this.value" id="ww"></textarea>
+  </div>
+  <div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:14px;
+    padding:14px 16px;font-size:13px;color:var(--t2);line-height:1.7">
+    <span style="color:var(--am2);font-weight:600">막혔다, 됐다</span><br>
+    막힌 질문이 다음 공부의 출발점입니다. 메모해두세요.
+  </div>
+</div>
+<div class="ft"><div class="ft-row">
+  <button class="btn btn-back" onclick="go(3)">←</button>
+  <button class="btn btn-next" onclick="go(5)">다음 →</button>
+</div></div>
+</div>
+
+<!-- ══ SCREEN 5: 블룸 목표 ══ -->
+<div class="screen" id="s5">
+<div class="sh">
+  <div class="sh-ey">Step 5 / 5</div>
+  <div class="sh-title">나의 학습 목표</div>
+  <div class="sh-sub">막힌 곳에서 한 단계 위를 목표로 세워보세요.</div>
+</div>
+<div class="step-body" id="bloom-body">
+<!-- 블룸 동적 렌더 -->
+</div>
+<div class="ft"><div class="ft-row">
+  <button class="btn btn-back" onclick="go(4)">←</button>
+  <button class="btn btn-next" id="b5" onclick="go(6)" disabled>다음 →</button>
+</div></div>
+</div>
+
+<!-- ══ SCREEN 6: 루틴 ══ -->
+<div class="screen" id="s6">
+<div class="sh">
+  <div class="sh-ey">루틴 카드</div>
+  <div class="sh-title">내일부터<br>딱 하나만</div>
+  <div class="sh-sub">'열심히'는 안 됩니다. 관찰하고 확인할 수 있게.</div>
+</div>
+<div class="step-body">
+  <div class="hint">
+    💡 "공부 더 열심히 한다" → "오답 원인을 3가지로 쓴다"<br>
+    구체적일수록 실천 가능성이 높아집니다.
+  </div>
+  <div class="field"><label class="fl">내일부터 딱 하나만 바꾼다면</label>
+    <textarea rows="3"
+      placeholder="예: 수학 오답 노트에 왜 틀렸는지 이유를 3가지 쓴다"
+      oninput="D.change1=this.value"
+      id="c1"></textarea></div>
+  <div class="field"><label class="fl">1주일 뒤 어떻게 확인하나요?</label>
+    <textarea rows="3"
+      placeholder="예: 일요일 밤에 오답 노트를 펼쳐 이유가 적혔는지 확인한다"
+      oninput="D.confirm_how=this.value"
+      id="ch"></textarea></div>
+</div>
+<div class="ft"><div class="ft-row">
+  <button class="btn btn-back" onclick="go(5)">←</button>
+  <button class="btn btn-next" onclick="renderConfirm();go(7)">최종 확인 →</button>
+</div></div>
+</div>
+
+<!-- ══ SCREEN 7: 확인 ══ -->
+<div class="screen" id="s7">
+<div class="sh">
+  <div class="sh-ey">최종 확인</div>
+  <div class="sh-title">이렇게<br>맞나요?</div>
+  <div class="sh-sub">제출하면 강연자에게 전달됩니다.</div>
+</div>
+<div class="step-body" id="confirm-body"></div>
+<div class="ft"><div class="ft-row">
+  <button class="btn btn-back" onclick="go(6)">←</button>
+  <button class="btn btn-submit" id="sbtn" onclick="submit()">제출하기 →</button>
+</div></div>
+</div>
+
+<!-- ══ SCREEN 8: 완료 ══ -->
+<div class="screen" id="s8">
+<div class="success-wrap">
+  <div class="success-icon">🎯</div>
+  <div class="success-title">완성했습니다!</div>
+  <div class="success-sub">오늘 강의가 진짜 공부로 바뀌는 건<br>지금부터입니다.</div>
+  <div class="save-hint">
+    📸 이 화면을 스크린샷으로 저장하세요.<br>
+    1주일 뒤 다시 꺼내보는 것이 마지막 숙제입니다.
+  </div>
+  <div class="result-list" id="result-list"></div>
+  <div class="divider"></div>
+  <div class="closing-quote">
+    <div class="cq-en">Everything is connected to everything.</div>
+    <div class="cq-ko">왜를 묻다 보면, 결국 같은 곳에 닿습니다.</div>
+    <div class="divider" style="margin:16px 0"></div>
+    <div class="cq-credit">
+      <strong>박영민</strong> · 한국과학영재학교<br>
+      학습과학커뮤니케이터<br>
+      2026 점프업 수학·과학스쿨
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ★ Google Apps Script 웹앱 URL 교체 ★
+const SHEET_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
+// ── DATA ──────────────────────────────────────────────────────
+const D = {
+  name:'', school:'', grade:'',
+  sq1:'', sq2:'', sq3:'',
+  r1:'', r2:'', r3:'',
+  why_topic:'', why_wall:'', why_level:'',
+  bloom_lv:'', bloom_goal:'',
+  change1:'', confirm_how:''
+};
+
+// ── BLOOM DATA ─────────────────────────────────────────────────
+const BL = [
+  {id:'remember', lv:'Lv.1', name:'기억하기',
+   c:'var(--b1)', bg:'#4A4ABF15',
+   verbs:'나열하다 · 정의하다 · 말하다 · 확인하다',
+   ex:'작업기억의 3가지 특징을 교과서 없이 나열할 수 있다'},
+  {id:'understand', lv:'Lv.2', name:'이해하기',
+   c:'var(--b2)', bg:'#3D6FA815',
+   verbs:'설명하다 · 비교하다 · 요약하다 · 분류하다',
+   ex:'단순 반복과 의도적 연습의 차이를 내 말로 설명할 수 있다'},
+  {id:'apply', lv:'Lv.3', name:'적용하기',
+   c:'var(--b3)', bg:'#2A947015',
+   verbs:'사용하다 · 풀다 · 계산하다 · 실행하다',
+   ex:'왜? 사다리를 내 교과 개념에 직접 적용할 수 있다'},
+  {id:'analyze', lv:'Lv.4', name:'분석하기',
+   c:'var(--b4)', bg:'#B8720F15',
+   verbs:'구분하다 · 분해하다 · 관계를 찾다 · 쪼개다',
+   ex:'내 공부법에서 작업기억 과부하를 일으키는 요인을 구분할 수 있다'},
+  {id:'evaluate', lv:'Lv.5', name:'평가하기',
+   c:'var(--b5)', bg:'#B84A2A15',
+   verbs:'판단하다 · 비판하다 · 선택하다 · 검토하다',
+   ex:'이순신과 의병 중 누가 더 결정적이었는지 근거를 들어 주장할 수 있다'},
+  {id:'create', lv:'Lv.6', name:'창조하기',
+   c:'var(--b6)', bg:'#8B1A3A15',
+   verbs:'설계하다 · 만들다 · 제안하다 · 구성하다',
+   ex:'뇌과학 원리에 근거한 나만의 학습 루틴을 설계할 수 있다'},
+];
+
+// ── STYLE QUESTIONS ────────────────────────────────────────────
+const SQ = [
+  {id:'sq1', q:'공부 계획 스타일이 어떤가요?', sub:'지금 나를 가장 잘 표현하는 것',
+   opts:[
+     {v:'plan', t:'계획형', s:'미리 계획하고 따른다'},
+     {v:'flex', t:'반반형', s:'큰 틀만 잡고 그날그날'},
+     {v:'free', t:'즉흥형', s:'그때그때 하고 싶은 것'},
+   ]},
+  {id:'sq2', q:'막혔을 때 어떻게 하나요?', sub:'',
+   opts:[
+     {v:'search', t:'바로 검색', s:'모르면 바로 찾아본다'},
+     {v:'think', t:'혼자 고민', s:'답 나올 때까지 생각한다'},
+     {v:'ask', t:'바로 질문', s:'선생님·친구에게 물어본다'},
+   ]},
+  {id:'sq3', q:'주로 어떤 방식으로 공부하나요?', sub:'',
+   opts:[
+     {v:'text', t:'텍스트 중심', s:'책·노트 읽고 쓰기'},
+     {v:'video', t:'영상 중심', s:'강의 영상·유튜브'},
+     {v:'mixed', t:'복합 활용', s:'상황따라 섞어서'},
+   ]},
+];
+
+let curScreen=0, sqStep=0, bloomSel=-1, wallLv=0;
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function go(n){
+  document.getElementById('s'+curScreen).classList.remove('on');
+  curScreen=n;
+  document.getElementById('s'+n).classList.add('on');
+  window.scrollTo(0,0);
+  const pct=[0,10,25,45,62,78,90,95,100][n]||0;
+  document.getElementById('pf').style.width=pct+'%';
+
+  if(n===2) renderStyleQ();
+  if(n===5) renderBloom();
+}
+
+// ── STEP 1 CHECK ─────────────────────────────────────────────
+function ck1(){
+  const b=document.getElementById('b1');
+  if(b) b.disabled=!(D.name&&D.school&&D.grade);
+}
+
+// ── STYLE QUESTIONS ──────────────────────────────────────────
+function renderStyleQ(){
+  const q=SQ[sqStep];
+  const s2=document.getElementById('s2');
+  s2.innerHTML=`
+  <div class="sh">
+    <div class="sh-ey">Step 2 / 5 · ${sqStep+1}/${SQ.length}</div>
+    <div class="sh-title">나의 공부 스타일</div>
+    <div class="sh-sub">${q.q}</div>
+  </div>
+  <div class="step-body">
+    <div class="dots-row">
+      ${SQ.map((_,i)=>`<div class="dot-seg" style="background:${D[SQ[i].id]?'var(--bl)':i===sqStep?'var(--t3)':'var(--bd)'}"></div>`).join('')}
+    </div>
+    <div class="chips">
+      ${q.opts.map(o=>`
+        <button class="chip ${D[q.id]===o.v?'on':''}" onclick="pickSQ('${q.id}','${o.v}')">
+          <div class="chip-rb"><div class="chip-rb-dot"></div></div>
+          <div class="chip-body">
+            <div class="chip-main">${o.t}</div>
+            <div class="chip-sub">${o.s}</div>
+          </div>
+        </button>`).join('')}
+    </div>
+  </div>
+  <div class="ft"><div class="ft-row">
+    <button class="btn btn-back" onclick="sqBack()">←</button>
+    <button class="btn btn-next" onclick="sqNext()" ${D[q.id]?'':'disabled'} id="sqn">
+      ${sqStep<SQ.length-1?'다음 →':'완료 →'}
+    </button>
+  </div></div>`;
+}
+function pickSQ(id,v){D[id]=v;renderStyleQ();}
+function sqNext(){
+  if(!D[SQ[sqStep].id])return;
+  sqStep<SQ.length-1?(sqStep++,renderStyleQ()):go(3);
+}
+function sqBack(){sqStep>0?(sqStep--,renderStyleQ()):go(1);}
+
+// ── WHY WALL ─────────────────────────────────────────────────
+function setWall(n){
+  wallLv=n;
+  D.why_level=n+'번째';
+  [1,2,3].forEach(i=>{
+    const b=document.getElementById('wb'+i);
+    if(!b)return;
+    b.style.background=i<=n?'var(--am3)':'var(--bg3)';
+    b.style.color=i<=n?'var(--am2)':'var(--t2)';
+    b.style.borderColor=i<=n?'var(--am)':'var(--bd)';
+  });
+  [0,1,2].forEach(i=>{
+    const d=document.getElementById('wd'+i);
+    if(d) d.style.background=i<n?'var(--am)':'var(--bd)';
+  });
+  const badge=document.getElementById('wall-badge');
+  const txt=document.getElementById('wall-badge-txt');
+  if(badge&&txt){
+    badge.style.display='inline-flex';
+    txt.textContent=n+'번째 "왜?"에서 막혔습니다';
+  }
+}
+
+// ── BLOOM ─────────────────────────────────────────────────────
+function renderBloom(){
+  const sel=bloomSel>=0?BL[bloomSel]:null;
+  document.getElementById('bloom-body').innerHTML=`
+  <div class="bloom-list">
+    ${BL.map((b,i)=>`
+      <div class="bloom-item ${bloomSel===i?'on':''}"
+        style="${bloomSel===i?`border-color:${b.c};background:${b.bg}`:''}"
+        onclick="pickBl(${i})">
+        <div class="bloom-top">
+          <span class="bloom-badge" style="background:${b.bg};color:${b.c}">${b.lv}</span>
+          <span class="bloom-name" style="${bloomSel===i?`color:${b.c}`:''}">${b.name}</span>
+        </div>
+        <div class="bloom-verbs">${b.verbs}</div>
+        ${bloomSel===i?`<div class="bloom-ex">예: ${b.ex}</div>`:''}
+      </div>`).join('')}
+  </div>
+  ${sel?`
+  <div class="goal-area">
+    <div class="goal-prefix">나는 이번에 배운 내용을 바탕으로,</div>
+    <span class="goal-lv-badge" style="background:${sel.bg};color:${sel.c}">
+      ${sel.lv} ${sel.name} 수준의 목표
+    </span>
+    <textarea rows="3" placeholder="예: ${sel.ex}"
+      oninput="D.bloom_goal=this.value;ck5()" id="bg-input">${D.bloom_goal}</textarea>
+    <div style="font-size:11px;color:var(--t3);margin-top:8px">사용 가능한 동사: ${sel.verbs}</div>
+  </div>`:`
+  <div style="text-align:center;padding:20px;font-size:13px;color:var(--t3)">
+    위에서 단계를 먼저 선택하세요
+  </div>`}`;
+}
+function pickBl(i){bloomSel=i;D.bloom_lv=BL[i].id;D.bloom_goal='';renderBloom();}
+function ck5(){
+  const b=document.getElementById('b5');
+  if(b) b.disabled=!D.bloom_goal;
+}
+
+// ── CONFIRM ──────────────────────────────────────────────────
+function renderConfirm(){
+  const bl=BL.find(b=>b.id===D.bloom_lv);
+  const sqMap={
+    plan:'계획형',flex:'반반형',free:'즉흥형',
+    search:'바로 검색',think:'혼자 고민',ask:'바로 질문',
+    text:'텍스트 중심',video:'영상 중심',mixed:'복합 활용'
+  };
+  document.getElementById('confirm-body').innerHTML=`
+  <div class="confirm-section">
+    <div class="cs-head">기본 정보</div>
+    ${[['이름',D.name],['학교',D.school],['학년',D.grade]].map(([k,v])=>
+      `<div class="cs-row"><div class="cs-k">${k}</div><div class="cs-v">${v||'-'}</div></div>`).join('')}
+  </div>
+  <div class="confirm-section">
+    <div class="cs-head">공부 스타일</div>
+    ${SQ.map(q=>`
+      <div class="cs-row">
+        <div class="cs-k" style="font-size:11px">${q.q.slice(0,7)}…</div>
+        <div class="cs-v">${sqMap[D[q.id]]||'-'}</div>
+      </div>`).join('')}
+  </div>
+  <div class="confirm-section">
+    <div class="cs-head">오늘 인출</div>
+    ${[['작업기억',D.r1],['시간≠향상',D.r2],['기억에 남는 것',D.r3]].map(([k,v])=>
+      `<div class="cs-row"><div class="cs-k" style="font-size:11px">${k}</div><div class="cs-v">${v||'-'}</div></div>`).join('')}
+  </div>
+  <div class="confirm-section">
+    <div class="cs-head">왜? 사다리</div>
+    <div class="cs-row"><div class="cs-k">막힌 지점</div><div class="cs-v">${D.why_level||'-'}</div></div>
+    <div class="cs-row"><div class="cs-k">막힌 질문</div><div class="cs-v">${D.why_wall||'-'}</div></div>
+  </div>
+  <div class="confirm-section">
+    <div class="cs-head">목표 · 루틴</div>
+    ${bl?`<div class="goal-card" style="background:${bl.bg};border:0.5px solid ${bl.c}">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:${bl.c};text-transform:uppercase;margin-bottom:6px">
+        ${bl.lv} · ${bl.name}
+      </div>
+      <div style="font-size:14px;font-weight:600;line-height:1.5;color:var(--t1)">${D.bloom_goal||'-'}</div>
+    </div>`:''}
+    <div class="cs-row" style="margin-top:10px">
+      <div class="cs-k">바꿀 것</div><div class="cs-v">${D.change1||'-'}</div></div>
+    <div class="cs-row">
+      <div class="cs-k">확인 방법</div><div class="cs-v">${D.confirm_how||'-'}</div></div>
+  </div>`;
+}
+
+// ── SUCCESS RENDER ────────────────────────────────────────────
+function renderSuccess(){
+  const bl=BL.find(b=>b.id===D.bloom_lv);
+  document.getElementById('result-list').innerHTML=`
+  <div class="rl-card">
+    <div class="rl-label">나의 목표 ${bl?'· '+bl.lv+' '+bl.name:''}</div>
+    <div class="rl-val">${D.bloom_goal||'-'}</div>
+  </div>
+  <div class="rl-card">
+    <div class="rl-label">내일부터 바꿀 것</div>
+    <div class="rl-val">${D.change1||'-'}</div>
+  </div>
+  <div class="rl-card">
+    <div class="rl-label">확인 방법</div>
+    <div class="rl-val">${D.confirm_how||'-'}</div>
+  </div>
+  <div class="rl-card">
+    <div class="rl-label">막혔던 질문 (공부의 시작)</div>
+    <div class="rl-val">${D.why_wall||D.why_level||'-'}</div>
+  </div>`;
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────
+async function submit(){
+  const btn=document.getElementById('sbtn');
+  if(btn){btn.textContent='전송 중...';btn.disabled=true;}
+  const payload={...D,ts:new Date().toISOString()};
+  try{
+    if(SHEET_URL==='YOUR_GOOGLE_APPS_SCRIPT_URL_HERE'){
+      console.log('테스트 데이터:', payload);
+      renderSuccess();
+      go(8);
+      return;
+    }
+    await fetch(SHEET_URL,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    renderSuccess();
+    go(8);
+  }catch(err){
+    if(btn){btn.textContent='제출하기 →';btn.disabled=false;}
+    alert('전송 오류가 났어요. 다시 시도해주세요.\n'+err.message);
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+// 왜? 사다리 버튼 직접 삽입 (template literal 중첩 해결)
+document.addEventListener('DOMContentLoaded', ()=>{
+  const wdbRow = document.querySelector('#s4 .why-box:nth-child(2)');
+  if(!wdbRow) return;
+  const btnDiv = document.createElement('div');
+  btnDiv.style.cssText='display:flex;gap:8px;margin-bottom:14px';
+  [1,2,3].forEach(n=>{
+    const b=document.createElement('button');
+    b.id='wb'+n;
+    b.textContent=n+'번째';
+    b.style.cssText='flex:1;padding:10px 6px;border-radius:10px;border:0.5px solid var(--bd);background:var(--bg3);color:var(--t2);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:.15s';
+    b.onclick=()=>setWall(n);
+    btnDiv.appendChild(b);
+  });
+});
+</script>
+</body>
+</html>
